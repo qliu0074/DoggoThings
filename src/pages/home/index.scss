@@ -1,0 +1,53 @@
+/* English comments only: Layout for Home page with full-screen background. */
+
+.home {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  background-color: #fffafc;
+}
+
+.home__hero {
+  width: 100%;
+  height: 520rpx;
+  max-height: 60vh;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.home__overlay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 32rpx 24rpx calc(env(safe-area-inset-bottom) + 160rpx);
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fffafc 40%);
+  margin-top: -60rpx;
+  border-top-left-radius: 32rpx;
+  border-top-right-radius: 32rpx;
+}
+
+/* English: Two-column grid on wider screens, one-column on narrow */
+.home__cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 24rpx;
+  overflow-x: auto;
+  padding-bottom: 8rpx;
+}
+
+.home__cards .jumpcard {
+  flex: 0 0 calc(50% - 12rpx);
+  width: calc(50% - 12rpx);
+  min-width: 280rpx;
+}
+
+/* English: Push action bar to bottom with some spacing */
+.home__action {
+  margin-top: auto;
+}

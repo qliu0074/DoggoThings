@@ -1,0 +1,70 @@
+/* English comments only: Styles for the flat rectangular action bar. */
+.actionbar {
+  width: 100%;
+  min-height: 96rpx;
+  display: flex;
+  align-items: center;
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+
+  /* English: Smooth transform for press feedback (pairs with pressfx--active). */
+  transition: transform 120ms ease, box-shadow 160ms ease;
+
+  /* English: Shadow fits light surface themes; tweak if needed. */
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.actionbar--block { width: 100%; }
+
+.actionbar--sm { min-height: 80rpx; border-radius: 12rpx; }
+.actionbar--md { min-height: 96rpx; border-radius: 16rpx; }
+.actionbar--lg { min-height: 112rpx; border-radius: 20rpx; }
+
+.actionbar__icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.actionbar__icon--placeholder {
+  width: 64rpx;
+  height: 64rpx;
+  margin-right: 16rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.actionbar__label {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* English: Right arrow */
+.actionbar__arrow {
+  width: 32rpx;
+  height: 32rpx;
+  margin-left: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+}
+
+.actionbar__arrow::after {
+  content: "";
+  width: 14rpx;
+  height: 14rpx;
+  border-top: 4rpx solid currentColor;
+  border-right: 4rpx solid currentColor;
+  transform: rotate(45deg);
+}
+
+/* English: Optional hover (H5) visual tweak */
+.actionbar:hover {
+  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.08);
+}

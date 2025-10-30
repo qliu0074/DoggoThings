@@ -1,0 +1,43 @@
+/* English comments only: Styles for BigCard component. */
+
+.big-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 36rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8rpx);
+  margin-top: 8rpx;
+}
+
+.big-card:active {
+  transform: translateY(4rpx);
+  transition: transform 120ms ease;
+}
+
+.big-card .text-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.big-card .title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2d0b1c;
+}
+
+.big-card .subtitle {
+  font-size: 26rpx;
+  color: rgba(45, 11, 28, 0.72);
+  line-height: 1.4;
+}
+
+.big-card .illustration {
+  width: 180rpx;
+  height: 160rpx;
+  margin-left: 32rpx;
+}

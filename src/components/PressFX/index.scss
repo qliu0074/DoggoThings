@@ -1,0 +1,5 @@
+/* English comments only: Press animation classes and keyframes. */
+.pressfx--active {
+  transform: scale(0.98);
+  transition: transform 120ms ease;
+}

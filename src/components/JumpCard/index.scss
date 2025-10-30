@@ -1,0 +1,70 @@
+/* English comments only: Styles and animations for JumpCard. */
+/* Base card */
+.jumpcard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  background: #ffffff;
+  border: 1px solid #eee;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.06);
+
+  /* English: Enter animation */
+  opacity: 0;
+  transform: translateY(12rpx) scale(0.98);
+  animation: jc-enter 280ms ease-out forwards;
+
+  /* English: Gentle idle float on H5; WeApp keeps it subtle */
+  /* You can disable if you prefer static cards */
+  /* animation: jc-enter 280ms ease-out forwards, jc-float 4s ease-in-out 320ms infinite; */
+
+  /* English: Prevent text selection on long press */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* English: Size presets */
+.jumpcard--sm { padding: 16rpx; }
+.jumpcard--md { padding: 24rpx; }
+.jumpcard--lg { padding: 32rpx; }
+
+/* English: Illustration area */
+.jumpcard__img {
+  width: 100%;
+  height: 220rpx;           /* English: Fixed height for consistent layout */
+  border-top-left-radius: 12rpx;
+  border-top-right-radius: 12rpx;
+  overflow: hidden;
+  background: #f8f8f8;
+}
+
+/* English: Label text */
+.jumpcard__label {
+  width: 100%;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333333;
+  padding: 16rpx 12rpx 12rpx;
+  line-height: 1.3;
+}
+
+/* English: Press/hover feedback (WeApp via hoverClass; H5 via :hover) */
+.jumpcard--hover,
+.jumpcard:hover {
+  transform: translateY(2rpx) scale(0.98);
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+/* English: Keyframes */
+@keyframes jc-enter {
+  0% { opacity: 0; transform: translateY(12rpx) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes jc-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}

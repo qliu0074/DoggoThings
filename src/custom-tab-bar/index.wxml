@@ -1,0 +1,16 @@
+<view class="tabbar" style="background-color: {{backgroundColor}}">
+  <view class="tabbar__items">
+    <block wx:for="{{items}}" wx:key="pagePath" wx:for-item="item" wx:for-index="index">
+      <view
+        class="tabbar__item {{selected === index ? 'tabbar__item--active' : ''}}"
+        data-path="{{item.pagePath}}"
+        data-index="{{index}}"
+        bindtap="switchTab"
+        style="color: {{selected === index ? selectedColor : color}}"
+      >
+        <text class="tabbar__label">{{item.text}}</text>
+      </view>
+    </block>
+  </view>
+  <view class="tabbar__safe"></view>
+</view>
