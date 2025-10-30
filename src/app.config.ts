@@ -6,8 +6,7 @@ export default defineAppConfig({
     "pages/home/index",
     "pages/store/index",
     "pages/booking/index",
-    "pages/profile/index",
-    "pages/membership/index"
+    "pages/profile/index"
   ],
   window: {
     navigationBarTitleText: "",

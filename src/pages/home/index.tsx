@@ -1,4 +1,4 @@
-// 首页：包含顶部横幅、功能卡片、操作栏、VIP 大卡片和店铺信息卡。
+// 首页：包含顶部横幅、功能卡片、操作栏、VIP 大卡片和店铺信息。
 // 适用于 Taro + 自定义底部 TabBar。
 
 import { View } from "@tarojs/components"
@@ -15,9 +15,9 @@ import heroBg from "../../assets/images/background.png"
 import shopIcon from "../../assets/images/shop.png"
 import reservationIcon from "../../assets/images/reservation.png"
 import membershipIcon from "../../assets/images/membership.png"
-import iconTime from "../../assets/icons/time.png"
-import iconLocation from "../../assets/icons/location.png"
-import iconPhone from "../../assets/icons/phone.png"
+import iconTime from "../../assets/icons/time.svg"
+import iconLocation from "../../assets/icons/location.svg"
+import iconPhone from "../../assets/icons/contact.svg"
 
 import "./index.scss"
 
@@ -26,11 +26,10 @@ export default function Home() {
     setTabBarSelected(0)
   })
 
-  // 跳转路径（请在对应目录下创建页面）
+  // 跳转路径
   const toShop = "/pages/store/index"
   const toBooking = "/pages/booking/index"
   const toProfile = "/pages/profile/index"
-  const toVip = "/pages/membership/index"
 
   return (
     <View className="home">
@@ -73,15 +72,15 @@ export default function Home() {
         {/* VIP 大卡片 */}
         <BigCard
           title="VIP 会员"
-          subtitle="￥000｜会员享专属优惠与活动"
+          subtitle="￥300｜会员享专属优惠与活动"
           imageUrl={membershipIcon}
-          targetUrl={toVip}
+          targetUrl={toProfile}
         />
 
-        {/* 店铺信息卡 */}
+        {/* 店铺信息 */}
         <ShopInfoCard
           businessHours="周一至周日 10:00 - 20:00"
-          address="维多利亚州 墨尔本 某某路 123 号"
+          address="维多利亚州墨尔本某某街 123 号"
           phone="+61 3 1234 5678"
           coords={{ latitude: -37.8136, longitude: 144.9631 }}
           iconTimeSrc={iconTime}

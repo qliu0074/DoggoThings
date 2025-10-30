@@ -1,3 +1,7 @@
 /* Import base and generated utilities */
 @import "styles/base.scss";
 @import "styles/utils.scss";
+
+page {
+  padding-bottom: calc(96rpx + env(safe-area-inset-bottom));
+}

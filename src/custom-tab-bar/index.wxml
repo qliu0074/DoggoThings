@@ -8,6 +8,11 @@
         bindtap="switchTab"
         style="color: {{selected === index ? selectedColor : color}}"
       >
+        <image
+          class="tabbar__icon"
+          mode="aspectFit"
+          src="{{selected === index ? item.selectedIconPath : item.iconPath}}"
+        />
         <text class="tabbar__label">{{item.text}}</text>
       </view>
     </block>

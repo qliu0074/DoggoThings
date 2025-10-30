@@ -8,20 +8,25 @@
   background-color: #cb7da3;
   box-shadow: 0 -8rpx 20rpx rgba(0, 0, 0, 0.08);
   z-index: 500;
+  height: calc(96rpx + env(safe-area-inset-bottom));
 }
 
 .tabbar__items {
   display: flex;
-  height: 120rpx;
+  width: 100%;
+  height: 96rpx;
+  align-items: center;
 }
 
 .tabbar__item {
   flex: 1;
-  display: flex;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: 26rpx;
-  letter-spacing: 2rpx;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  column-gap: 12rpx;
   transition: transform 120ms ease, color 120ms ease;
 }
 
@@ -29,12 +34,14 @@
   font-weight: 600;
 }
 
-.tabbar__item--active .tabbar__label {
-  transform: translateY(-4rpx);
+.tabbar__icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .tabbar__label {
   transform: translateY(0);
+  white-space: nowrap;
 }
 
 .tabbar__safe {
