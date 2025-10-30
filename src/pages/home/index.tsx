@@ -11,14 +11,14 @@ import ShopInfoCard from "../../components/ShopInfoCard"
 import { setTabBarSelected } from "../../utils/tabbar"
 
 // 本地图片资源
-import heroBg from "../../assets/images/background.png"
-import shopIcon from "../../assets/images/shop.png"
-import reservationIcon from "../../assets/images/reservation.png"
-import membershipIcon from "../../assets/images/membership.png"
-import iconTime from "../../assets/icons/time.svg"
-import iconLocation from "../../assets/icons/location.svg"
-import iconPhone from "../../assets/icons/contact.svg"
-
+import heroBg from "../../assets/images/background.webp"
+import shopIcon from "../../assets/images/shop.webp"
+import reservationIcon from "../../assets/images/reservation.webp"
+import membershipIcon from "../../assets/images/membership.webp"
+import iconTime from "../../assets/icons/time.webp"
+import iconLocation from "../../assets/icons/location.webp"
+import iconPhone from "../../assets/icons/contact.webp"
+import puppyIcon from "../../assets/icons/puppyIcon.webp"
 import "./index.scss"
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
   const toProfile = "/pages/profile/index"
 
   return (
-    <View className="home">
+    <View className="home page">
       {/* 顶部横幅 */}
       <View
         className="home__hero"
@@ -62,6 +62,7 @@ export default function Home() {
         <View className="home__action">
           <ActionBar
             label="成为会员，享更多专属权益"
+            iconSrc={puppyIcon}
             to={toProfile}
             color="#C87DA3"
             size="md"

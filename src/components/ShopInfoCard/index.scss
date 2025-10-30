@@ -1,0 +1,64 @@
+.shop-card {
+  width: 100%;
+  padding: 32rpx 28rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20rpx 40rpx rgba(200, 125, 163, 0.15);
+  display: flex;
+  flex-direction: column;
+  row-gap: 20rpx;
+  box-sizing: border-box;
+  --shop-theme: #c87da3;
+}
+
+.shop-card__row {
+  display: flex;
+  align-items: center;
+  column-gap: 16rpx;
+}
+
+.shop-card__icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.shop-card__icon-fallback {
+  font-size: 36rpx;
+}
+
+.shop-card__label {
+  font-size: 28rpx;
+  color: rgba(45, 11, 28, 0.7);
+  min-width: 140rpx;
+}
+
+.shop-card__value {
+  font-size: 28rpx;
+  color: #2d0b1c;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.shop-card__actions {
+  margin-top: 12rpx;
+  display: flex;
+  column-gap: 20rpx;
+}
+
+.shop-card__btn {
+  flex: 1;
+  font-size: 28rpx;
+  border-radius: 999rpx;
+  border: none;
+}
+
+.shop-card__btn--primary {
+  background: var(--shop-theme);
+  color: #ffffff;
+}
+
+.shop-card__btn--ghost {
+  background: #ffffff;
+  color: var(--shop-theme);
+  border: 2rpx solid var(--shop-theme);
+}

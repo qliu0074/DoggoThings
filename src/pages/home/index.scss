@@ -1,5 +1,12 @@
-/* English comments only: Layout for Home page with full-screen background. */
+/* English: height of custom tabBar */
+:root {
+    --tabbar-h: 100rpx;
+}
 
+/* English: reserve space so content won't be covered by the tabBar */
+.page {
+    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+}
 .home {
   min-height: 100vh;
   width: 100%;

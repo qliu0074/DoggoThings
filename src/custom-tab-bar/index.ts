@@ -1,3 +1,17 @@
+// English comment: Custom tabBar component for WeChat Mini Program.
+// Runs in native layer (not React). Uses PNG assets bundled by Taro.
+
+import iconHome from "../assets/icons/unselectedHome.webp"
+import iconHomeActive from "../assets/icons/selectedHome.webp"
+import iconStore from "../assets/icons/unselectedShop.webp"
+import iconStoreActive from "../assets/icons/selectedShop.webp"
+import iconBooking from "../assets/icons/unselectedBooking.webp"
+import iconBookingActive from "../assets/icons/selectedBooking.webp"
+import iconProfile from "../assets/icons/unselectedProfile.webp"
+import iconProfileActive from "../assets/icons/selectedProfile.webp"
+
+import "./index.scss"
+
 type TabItem = {
   pagePath: string
   text: string
@@ -5,32 +19,34 @@ type TabItem = {
   selectedIconPath: string
 }
 
-const iconHome = require("../assets/icons/unselectedhome.svg") as string
-const iconHomeActive = require("../assets/icons/selectedhome.svg") as string
-const iconStore = require("../assets/icons/unselectedshop.svg") as string
-const iconStoreActive = require("../assets/icons/selectedshop.svg") as string
-const iconBooking = require("../assets/icons/unselectedBooking.svg") as string
-const iconBookingActive = require("../assets/icons/selectedBooking.svg") as string
-const iconProfile = require("../assets/icons/unselectedProfile.svg") as string
-const iconProfileActive = require("../assets/icons/selectedProfile.svg") as string
+interface TabbarData {
+  selected: number
+  color: string
+  selectedColor: string
+  backgroundColor: string
+  items: ReadonlyArray<TabItem>
+}
 
-function resolveCurrentIndex(items: TabItem[]): number {
+function resolveCurrentIndex(items: ReadonlyArray<TabItem>): number {
   const pages = getCurrentPages()
   const current = pages[pages.length - 1]
   const route = current?.route ? `/${current.route}` : ""
   return items.findIndex((item) => item.pagePath === route)
 }
 
-Component({
+Component<TabbarData, {
+  switchTab(e: TapEvent): void
+  setSelected(index: number): void
+}>({
   data: {
     selected: 0,
     color: "rgba(255,255,255,0.75)",
-    selectedColor: "#FFFFFF",
+    selectedColor: "#111111",
     backgroundColor: "#CB7DA3",
-    items: <TabItem[]>[
+    items: [
       {
         pagePath: "/pages/home/index",
-        text: "主页",
+        text: "首页",
         iconPath: iconHome,
         selectedIconPath: iconHomeActive
       },
@@ -52,7 +68,7 @@ Component({
         iconPath: iconProfile,
         selectedIconPath: iconProfileActive
       }
-    ]
+    ] as const
   },
 
   lifetimes: {
@@ -74,16 +90,13 @@ Component({
   },
 
   methods: {
-    switchTab(event: WechatMiniprogram.TapEvent) {
-      const { path, index } = event.currentTarget.dataset as {
-        path: string
-        index: number
+    switchTab(e: TapEvent) {
+      const ds = e.currentTarget.dataset as { path?: string; index?: number }
+      if (typeof ds.path === "string") {
+        wx.switchTab({ url: ds.path })
       }
-      if (typeof path === "string") {
-        wx.switchTab({ url: path })
-      }
-      if (typeof index === "number") {
-        this.setSelected(index)
+      if (typeof ds.index === "number") {
+        this.setData({ selected: ds.index })
       }
     },
 

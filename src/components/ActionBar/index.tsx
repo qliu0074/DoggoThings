@@ -94,7 +94,7 @@ export default function ActionBar({
       data-testid={testId}
     >
       {iconSrc ? (
-        <Image className="actionbar__icon" src={iconSrc} mode="aspectFit" />
+        <Image className="actionbar__icon" src={iconSrc} mode="aspectFit" lazyLoad />
       ) : (
         <View className="actionbar__icon--placeholder" />
       )}

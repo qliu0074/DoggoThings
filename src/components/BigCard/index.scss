@@ -4,12 +4,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 36rpx;
+  padding: 40rpx 36rpx;
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(8rpx);
   margin-top: 8rpx;
+  min-height: 220rpx;
 }
 
 .big-card:active {
@@ -37,7 +38,7 @@
 }
 
 .big-card .illustration {
-  width: 180rpx;
-  height: 160rpx;
+  width: 196rpx;
+  height: 188rpx;
   margin-left: 32rpx;
 }

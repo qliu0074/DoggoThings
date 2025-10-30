@@ -11,7 +11,7 @@ export default function Store() {
   })
   return (
     <View style={{ padding: "20px" }}>
-      <Text style={{ fontSize: 18, fontWeight: 600 }}>Hello, Taro!</Text>
+      <Text style={{ fontSize: 18, fontWeight: 600 }}>Shop</Text>
     </View>
   )
 }

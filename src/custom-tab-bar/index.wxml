@@ -1,21 +1,25 @@
-<view class="tabbar" style="background-color: {{backgroundColor}}">
-  <view class="tabbar__items">
-    <block wx:for="{{items}}" wx:key="pagePath" wx:for-item="item" wx:for-index="index">
+<!-- English: Minimal custom tabbar, fixed at bottom with explicit height -->
+<view class="ctb" style="background: {{backgroundColor}}">
+  <view class="ctb__items">
+    <block wx:for="{{items}}" wx:key="pagePath">
       <view
-        class="tabbar__item {{selected === index ? 'tabbar__item--active' : ''}}"
+        class="ctb__item {{ index === selected ? 'ctb__item--active' : '' }}"
         data-path="{{item.pagePath}}"
         data-index="{{index}}"
         bindtap="switchTab"
-        style="color: {{selected === index ? selectedColor : color}}"
       >
         <image
-          class="tabbar__icon"
+          class="ctb__icon"
+          src="{{ index === selected ? item.selectedIconPath : item.iconPath }}"
+          lazy-load="true"
           mode="aspectFit"
-          src="{{selected === index ? item.selectedIconPath : item.iconPath}}"
         />
-        <text class="tabbar__label">{{item.text}}</text>
+        <text
+          class="ctb__text"
+          style="color: {{ index === selected ? selectedColor : color }}"
+        >{{item.text}}</text>
       </view>
     </block>
   </view>
-  <view class="tabbar__safe"></view>
+  <view class="ctb__safe"></view>
 </view>

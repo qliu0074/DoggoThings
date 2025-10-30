@@ -1,50 +1,55 @@
-.tabbar {
+.ctb {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 32rpx;
+  right: 32rpx;
+  bottom: calc(env(safe-area-inset-bottom) + 8rpx);
   display: flex;
   flex-direction: column;
   background-color: #cb7da3;
-  box-shadow: 0 -8rpx 20rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20rpx 48rpx rgba(203, 125, 163, 0.35);
   z-index: 500;
-  height: calc(96rpx + env(safe-area-inset-bottom));
+  border-radius: 999rpx;
+  padding: 20rpx 40rpx;
 }
 
-.tabbar__items {
+/* English: distribute nav items evenly inside the floating pill */
+.ctb__items {
   display: flex;
   width: 100%;
-  height: 96rpx;
   align-items: center;
+  justify-content: space-between;
+  column-gap: 12rpx;
 }
 
-.tabbar__item {
+.ctb__item {
   flex: 1;
   display: inline-flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: 22rpx;
   letter-spacing: 1rpx;
-  column-gap: 12rpx;
-  transition: transform 120ms ease, color 120ms ease;
+  transition: transform 160ms ease, color 160ms ease;
+  text-align: center;
+  padding: 8rpx 0;
 }
 
-.tabbar__item--active {
+.ctb__item--active {
   font-weight: 600;
+  transform: translateY(-4rpx);
 }
 
-.tabbar__icon {
-  width: 40rpx;
-  height: 40rpx;
+.ctb__icon {
+  width: 44rpx;
+  height: 44rpx;
 }
 
-.tabbar__label {
+.ctb__text {
   transform: translateY(0);
   white-space: nowrap;
+  margin-top: 10rpx;
 }
 
-.tabbar__safe {
-  height: constant(safe-area-inset-bottom);
-  height: env(safe-area-inset-bottom);
+.ctb__safe {
+  display: none;
 }

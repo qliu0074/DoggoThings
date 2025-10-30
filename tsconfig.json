@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "jsx": "react-jsx",
+    "typeRoots": ["./types", "./node_modules/@types"],
     "types": ["@tarojs/taro", "@tarojs/components", "node"],
     "strict": true,
     "skipLibCheck": true,

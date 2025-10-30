@@ -40,7 +40,7 @@ export default function BigCard({ title, subtitle, imageUrl, targetUrl }: BigCar
         <Text className="title">{title}</Text>
         <Text className="subtitle">{subtitle}</Text>
       </View>
-      <Image className="illustration" src={imageUrl} mode="aspectFit" />
+      <Image className="illustration" src={imageUrl} mode="aspectFit" lazyLoad />
     </View>
   )
 }
