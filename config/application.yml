@@ -1,0 +1,52 @@
+# English: Base config for all profiles. Keep it safe for production.
+
+server:
+  port: 8080
+
+spring:
+  jackson:
+    time-zone: Asia/Shanghai                # English: use China time zone
+    serialization:
+      write-dates-as-timestamps: false      # English: ISO-8601 in JSON
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/app}  # English: override via env in prod
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}                     # English: do not commit secrets
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20                 # English: higher pool size for prod
+
+  jpa:
+    hibernate:
+      ddl-auto: none                        # English: Flyway controls schema
+    open-in-view: false                     # English: avoid lazy loading in web layer
+
+  flyway:
+    enabled: true
+    encoding: UTF-8
+    clean-disabled: true                    # English: never allow flyway clean in prod
+    baseline-on-migrate: true               # English: adopt existing DB as baseline if needed
+    locations: classpath:db/migration       # English: schema only, no dev seeds
+    schemas: app
+    default-schema: app
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info                # English: expose only safe endpoints
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  security:
+    jwt:
+      secret: ${APP_SECURITY_JWT_SECRET:change_this_in_env}  # English: 32+ chars secret from env
+      ttl-seconds: ${APP_SECURITY_JWT_TTL:36000}             # English: token lifetime in seconds
+
+logging:
+  level:
+    root: INFO
+    app.nail: INFO                          # English: quieter in prod

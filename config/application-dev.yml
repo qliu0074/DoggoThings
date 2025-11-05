@@ -1,0 +1,26 @@
+# English: Common defaults for all profiles
+spring:
+  flyway:
+    enabled: true
+    encoding: UTF-8
+    clean-disabled: false              # English: allow clean in dev if you need full reset
+    baseline-on-migrate: true
+    locations: classpath:db/migration,classpath:db/dev  # English: include dev seeds
+    schemas: app
+    default-schema: app
+
+  application:
+    name: nail-api
+  jackson:
+    time-zone: Asia/Shanghai          # English: China Standard Time (UTC+8)
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -1,0 +1,4 @@
+<configuration>
+  <!-- English: simple console logging -->
+  <include resource="org/springframework/boot/logging/logback/base.xml"/>
+</configuration>
