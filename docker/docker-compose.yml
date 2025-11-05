@@ -19,7 +19,7 @@ services:
 
   app:
     build:
-      context: .                              # English: project root
+      context: ..                             # English: project root from docker/ dir
       dockerfile: docker/app.Dockerfile       # English: correct build recipe path
     image: nail-app:java23
     container_name: nail_app

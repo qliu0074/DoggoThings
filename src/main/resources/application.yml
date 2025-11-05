@@ -7,25 +7,68 @@ spring:
   application:
     name: nail-api
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres   # English: JDBC URL to your PostgreSQL database
-    username: postgres                               # English: Database username
-    password: 123456                                 # English: Database password
-    driver-class-name: org.postgresql.Driver         # English: JDBC driver for PostgreSQL
+  main:
+    banner-mode: off
 
   jackson:
-    time-zone: Asia/Shanghai                         # English: Set system timezone to China Standard Time (UTC+8)
-    date-format: yyyy-MM-dd HH:mm:ss                 # English: Global JSON datetime format
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
 
-  main:
-    banner-mode: off                                 # English: Disable Spring Boot startup banner
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/app}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+
   jpa:
     hibernate:
       ddl-auto: none
+    open-in-view: false
     show-sql: true
     properties:
       hibernate.format_sql: true
-# English: Optional Flyway DB migration configuration (can add later if needed)
-# flyway:
-#   enabled: true
-#   locations: classpath:db/migration
+
+  flyway:
+    enabled: true
+    encoding: UTF-8
+    clean-disabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: app
+    default-schema: app
+
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  security:
+    jwt:
+      secret: ${APP_SECURITY_JWT_SECRET:change_this_in_env}
+      ttl-seconds: ${APP_SECURITY_JWT_TTL:36000}
+    in-memory:
+      user:
+        username: ${APP_SECURITY_USER_USERNAME:user}
+        password: ${APP_SECURITY_USER_PASSWORD:password}
+      admin:
+        username: ${APP_SECURITY_ADMIN_USERNAME:admin}
+        password: ${APP_SECURITY_ADMIN_PASSWORD:password}
+
+logging:
+  level:
+    root: INFO
+    app.nail: INFO

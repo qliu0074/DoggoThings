@@ -1,5 +1,6 @@
 package app.nail.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -52,10 +53,15 @@ public class SecurityConfig {
      * Replace with DAO-based UserDetailsService to load users from DB later.
      */
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+    public UserDetailsService userDetailsService(
+            PasswordEncoder encoder,
+            @Value("${app.security.in-memory.user.username:user}") String userUsername,
+            @Value("${app.security.in-memory.user.password:password}") String userPassword,
+            @Value("${app.security.in-memory.admin.username:admin}") String adminUsername,
+            @Value("${app.security.in-memory.admin.password:password}") String adminPassword) {
         return new InMemoryUserDetailsManager(
-            User.withUsername("user").password(encoder.encode("password")).roles("USER").build(),
-            User.withUsername("admin").password(encoder.encode("password")).roles("ADMIN").build()
+            User.withUsername(userUsername).password(encoder.encode(userPassword)).roles("USER").build(),
+            User.withUsername(adminUsername).password(encoder.encode(adminPassword)).roles("ADMIN").build()
         );
     }
 
