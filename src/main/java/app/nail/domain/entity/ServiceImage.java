@@ -1,28 +1,46 @@
 package app.nail.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter; import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.OffsetDateTime;
 
-/** English: Service images with optional cover. */
+/**
+ * 服务图片实体
+ * 对应表：app.service_images
+ */
 @Getter @Setter
-@Entity @Table(name="service_images", schema="app")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "service_images", schema = "app")
 public class ServiceImage {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="service_id", nullable=false)
-    private Long serviceId;
+    /** 所属服务 */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServiceItem service;
 
-    @Column(name="image_url", nullable=false, columnDefinition="text")
+    /** 图片 URL */
+    @Lob
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @Column(name="is_cover", nullable=false)
-    private Boolean isCover = false;
+    /** 是否封面 */
+    @Column(name = "is_cover", nullable = false)
+    private Boolean cover;
 
-    @Column(name="sort_order", nullable=false)
-    private Short sortOrder = 0;
+    /** 排序 */
+    @Column(name = "sort_order", nullable = false)
+    private Short sortOrder;
 
-    @Column(name="created_at", insertable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 }

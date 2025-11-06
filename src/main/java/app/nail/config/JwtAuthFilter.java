@@ -7,12 +7,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -23,43 +22,54 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * English:
- * - Read "Authorization: Bearer <token>".
- * - Validate token and set Authentication into SecurityContext if valid.
- * - Token contains username and roles array.
+ * English: Stateless JWT parser. Builds Authentication from subject and roles.
  */
-@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final Key key;
+    private final String secret;
 
-    public JwtAuthFilter(@Value("${app.security.jwt.secret}") String secret) {
-        // English: HMAC-SHA key from secret; keep 32+ bytes
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtAuthFilter(String secret) {
+        this.secret = secret;
+    }
+
+    /** English: HS256 key. Secret length must be >= 32 bytes. */
+    private Key key() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String auth = request.getHeader("Authorization");
-        if (auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7);
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        String header = request.getHeader("Authorization");
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
             try {
-                Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(key())
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
                 String username = claims.getSubject();
                 @SuppressWarnings("unchecked")
-                List<String> roles = (List<String>) claims.get("roles");
-                Collection<SimpleGrantedAuthority> authorities = roles == null ? List.of()
-                        : roles.stream().map(r -> new SimpleGrantedAuthority("ROLE_" + r)).collect(Collectors.toList());
+                List<String> roles = claims.get("roles", List.class);
 
-                var authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                Collection<SimpleGrantedAuthority> authorities = roles == null ? List.of()
+                        : roles.stream()
+                                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toList());
+
+                var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
-                // English: invalid token, proceed without authentication; downstream will reject if required
-                SecurityContextHolder.clearContext();
+                SecurityContextHolder.clearContext(); // English: invalid token -> anonymous
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

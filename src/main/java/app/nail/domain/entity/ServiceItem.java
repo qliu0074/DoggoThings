@@ -2,33 +2,61 @@ package app.nail.domain.entity;
 
 import app.nail.domain.enums.ProductStatus;
 import jakarta.persistence.*;
-import lombok.Getter; import lombok.Setter;
-import java.time.OffsetDateTime;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-/** English: Service catalog row (e.g., manicure). */
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 服务项目实体
+ * 对应表：app.services
+ */
 @Getter @Setter
-@Entity @Table(name="services", schema="app")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "services", schema = "app")
 public class ServiceItem {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 服务分类 */
+    @Column(nullable = false, length = 60)
     private String category;
 
-    @Column(name="price_cents", nullable=false)
+    /** 服务价格（分） */
+    @Column(name = "price_cents", nullable = false)
     private Integer priceCents;
 
-    @Column(columnDefinition="text")
+    /** 描述 */
+    @Lob
     private String description;
 
+    /** 上下架状态 */
     @Enumerated(EnumType.STRING)
-    private ProductStatus status = ProductStatus.ON;
+    @Column(nullable = false, columnDefinition = "product_status")
+    private ProductStatus status;
 
-    @Column(name="created_at", insertable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name="updated_at", insertable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    /** 乐观锁版本 */
     @Version
     private Integer version;
+
+    /** 图片一对多 */
+    @OneToMany(mappedBy = "service", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ServiceImage> images = new ArrayList<>();
 }

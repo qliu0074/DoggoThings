@@ -2,47 +2,78 @@ package app.nail.domain.entity;
 
 import app.nail.domain.enums.ProductStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter; import lombok.Setter;
-import java.time.OffsetDateTime;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-/** English: Catalog product with dual stock counters and generated display stock. */
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 商品实体
+ * 对应表：app.products
+ * 说明：包含实际库存、待确认库存、展示库存(生成列)
+ */
 @Getter @Setter
-@Entity @Table(name="products", schema="app")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "products", schema = "app")
 public class Product {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "产品名称不能为空")
-    @Size(max = 160, message = "产品名称不能超过160字符")
+    /** 商品名 */
+    @Column(nullable = false, length = 160)
     private String name;
 
-    @Size(max = 60, message = "分类不能超过60字符")
+    /** 分类（例：穿戴甲/玩具等） */
+    @Column(nullable = false, length = 60)
     private String category;
 
-    @Column(name="price_cents", nullable=false)
+    /** 价格（单位：分） */
+    @Column(name = "price_cents", nullable = false)
     private Integer priceCents;
 
-    @Column(columnDefinition = "text")
-    @Size(max = 1000, message = "描述不能超过1000字符")
+    /** 描述 */
+    @Lob
     private String description;
 
-    @Column(name="stock_actual", nullable=false)
+    /** 实际库存 */
+    @Column(name = "stock_actual", nullable = false)
     private Integer stockActual;
 
-    @Column(name="stock_pending", nullable=false)
+    /** 待确认库存（下单未确认冻结） */
+    @Column(name = "stock_pending", nullable = false)
     private Integer stockPending;
 
-    @Enumerated(EnumType.STRING)
-    private ProductStatus status = ProductStatus.ON;
+    /** 展示库存 = actual - pending（生成列，只读） */
+    @Column(name = "stock_display", insertable = false, updatable = false)
+    private Integer stockDisplay;
 
-    @Column(name="created_at", insertable = false, updatable = false)
+    /** 上下架状态 */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "product_status")
+    private ProductStatus status;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name="updated_at", insertable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    /** 乐观锁版本 */
     @Version
     private Integer version;
+
+    /** 图片一对多 */
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductImage> images = new ArrayList<>();
 }

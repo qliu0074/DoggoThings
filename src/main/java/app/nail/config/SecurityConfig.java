@@ -3,78 +3,72 @@ package app.nail.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-/**
- * English:
- * - Stateless JWT security.
- * - Open only health/docs/auth and public GET endpoints.
- * - Everything else requires authentication. /api/admin/** requires ROLE_ADMIN.
- * - CSRF disabled because we do stateless REST with bearer tokens.
- */
+import org.springframework.web.cors.*;
+
+import java.util.List;
+
+/** English: Central security setup. CORS lives here. Stateless + JWT. */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // English: stateless REST does not need CSRF tokens
-            .cors(Customizer.withDefaults())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(reg -> reg
-                .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    /**
-     * English: In-memory users for development.
-     * Replace with DAO-based UserDetailsService to load users from DB later.
-     */
-    @Bean
-    public UserDetailsService userDetailsService(
-            PasswordEncoder encoder,
-            @Value("${app.security.in-memory.user.username:user}") String userUsername,
-            @Value("${app.security.in-memory.user.password:password}") String userPassword,
-            @Value("${app.security.in-memory.admin.username:admin}") String adminUsername,
-            @Value("${app.security.in-memory.admin.password:password}") String adminPassword) {
-        return new InMemoryUserDetailsManager(
-            User.withUsername(userUsername).password(encoder.encode(userPassword)).roles("USER").build(),
-            User.withUsername(adminUsername).password(encoder.encode(adminPassword)).roles("ADMIN").build()
-        );
-    }
-
+    /** English: Password encoder for user credentials. */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // English: strong password hash
+        return new BCryptPasswordEncoder();
     }
 
+    /** English: Expose AuthenticationManager for login endpoints. */
     @Bean
-    public AuthenticationManager authenticationManager(UserDetailsService uds, PasswordEncoder encoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(uds);
-        provider.setPasswordEncoder(encoder);
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
+    }
+
+    /** English: Single source of truth for CORS. */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        // TODO: replace with your real FE origins
+        cfg.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowCredentials(false); // stateless API
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
+    }
+
+    /** English: Register JwtAuthFilter with secret from properties. */
+    @Bean
+    public JwtAuthFilter jwtAuthFilter(@Value("${app.jwt.secret}") String secret) {
+        return new JwtAuthFilter(secret);
+    }
+
+    /** English: Main filter chain with URL-based authorization. */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwt) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/health/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // login/token
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/client/**").hasAnyRole("CLIENT", "ADMIN")
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }

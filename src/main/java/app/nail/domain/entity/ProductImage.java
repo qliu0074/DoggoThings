@@ -1,28 +1,46 @@
 package app.nail.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter; import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.OffsetDateTime;
 
-/** English: Product images with optional cover and sort order. */
+/**
+ * 商品图片实体
+ * 对应表：app.product_images
+ */
 @Getter @Setter
-@Entity @Table(name="product_images", schema="app")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "product_images", schema = "app")
 public class ProductImage {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="product_id", nullable=false)
-    private Long productId;
+    /** 所属商品 */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
-    @Column(name="image_url", nullable=false, columnDefinition="text")
+    /** 图片 URL */
+    @Lob
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @Column(name="is_cover", nullable=false)
-    private Boolean isCover = false;
+    /** 是否封面 */
+    @Column(name = "is_cover", nullable = false)
+    private Boolean cover;
 
-    @Column(name="sort_order", nullable=false)
-    private Short sortOrder = 0;
+    /** 排序 */
+    @Column(name = "sort_order", nullable = false)
+    private Short sortOrder;
 
-    @Column(name="created_at", insertable = false, updatable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 }

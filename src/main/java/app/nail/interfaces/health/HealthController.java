@@ -2,11 +2,19 @@ package app.nail.interfaces.health;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.Map;
 
-/** English: Simple liveness endpoint. */
+/** English: Simple health endpoints. */
 @RestController
 public class HealthController {
-    @GetMapping("/health")
-    public Map<String, Object> ok() { return Map.of("status", "UP"); }
+    /** English: Liveness probe. */
+    @GetMapping("/api/health/live")
+    public String live() {
+        return "OK";
+    }
+
+    /** English: Readiness probe. Extend with DB/cache checks if needed. */
+    @GetMapping("/api/health/ready")
+    public String ready() {
+        return "READY";
+    }
 }
