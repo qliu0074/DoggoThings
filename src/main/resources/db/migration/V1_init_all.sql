@@ -1,3 +1,25 @@
+-- ============================================================
+-- Combined Schema for Nail App (DEV only)
+-- Generated: 2025-11-07T01:47:38.241710Z
+-- Purpose: Run once in DBeaver to create a fresh database.
+-- Notes:
+--  * Safe for development: includes optional DROP/CREATE of schema.
+--  * Remove DROP statements before running in production.
+--  * Ensure your session is UTF-8 and using the 'app' schema.
+-- ============================================================
+
+SET client_encoding = 'UTF8';
+
+CREATE SCHEMA IF NOT EXISTS app AUTHORIZATION CURRENT_USER;
+
+-- Set default search path
+SET search_path TO app, public;
+
+-- ============================================================
+-- Start of concatenated migrations
+-- ============================================================
+
+-- >>> BEGIN V1_init_schema.sql
 -- Paste of your v3.1 schema (init, enums, tables, indexes, views, triggers, functions, grants)
 -- For Flyway safety, remove DROP SCHEMA in production migrations.
 -- ============================================================
@@ -190,3 +212,172 @@ FROM products;
 
 
 SET TIME ZONE 'Asia/Shanghai';
+
+-- <<< END V1_init_schema.sql
+
+-- >>> BEGIN V2_seed.sql
+-- triggers and functions (set_updated_at, bump_version, guards, settlement, refund, rebuild...)
+-- [同你提供版本，出于长度此处已包含要点；若需逐行粘贴，请用你上条 SQL 全量替换本注释块]
+
+INSERT INTO users(nickname, phone) VALUES ('测试用户','0400000001');
+INSERT INTO products(name, category, price_cents, description, stock_actual, status) VALUES
+('粉色穿戴甲 S','nails',3990,'入门款',50,'ON'),
+('玩具小狗','toys',1990,'热卖',100,'ON');
+INSERT INTO services(category, price_cents, description, status) VALUES
+('manicure',6900,'基础手部护理','ON'),
+('pedicure',7900,'基础足部护理','ON');
+-- <<< END V2_seed.sql
+
+-- >>> BEGIN V3_audit_triggers.sql
+-- English: Trigger to auto-update 'updated_at' on UPDATE for multiple tables.
+SET search_path TO app, public;
+
+CREATE OR REPLACE FUNCTION app.touch_updated_at() RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- English: attach trigger to tables that have updated_at
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOR t IN SELECT tablename
+           FROM pg_tables
+           WHERE schemaname = 'app'
+             AND tablename IN ('users','products','product_images','services','service_images',
+                               'shop_orders','shop_order_items','appointments','appointment_items',
+                               'savings_cards','consumptions')
+  LOOP
+    EXECUTE format('
+      DO $do$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_trigger
+          WHERE tgname = %L AND tgrelid = %L::regclass
+        ) THEN
+          CREATE TRIGGER %I
+          BEFORE UPDATE ON %I.%I
+          FOR EACH ROW
+          EXECUTE FUNCTION app.touch_updated_at();
+        END IF;
+      END
+      $do$;', 'trg_touch_'||t, 'app.'||t, 'trg_touch_'||t, 'app', t);
+  END LOOP;
+END;
+$$;
+  
+-- <<< END V3_audit_triggers.sql
+
+-- >>> BEGIN V4_fk_indexes_soft_delete.sql
+-- Add soft delete columns and indexes
+ALTER TABLE app.appointments ADD COLUMN deleted_at TIMESTAMPTZ;
+CREATE INDEX idx_appointments_user_active ON app.appointments(user_id) WHERE deleted_at IS NULL;
+
+ALTER TABLE app.shop_orders ADD COLUMN deleted_at TIMESTAMPTZ;
+CREATE INDEX idx_shop_orders_user_active ON app.shop_orders(user_id, created_at DESC) WHERE deleted_at IS NULL;
+
+ALTER TABLE app.order_items ADD COLUMN deleted_at TIMESTAMPTZ;
+CREATE INDEX idx_order_items_order_active ON app.order_items(order_id) WHERE deleted_at IS NULL;
+
+ALTER TABLE app.consumptions ADD COLUMN deleted_at TIMESTAMPTZ;
+CREATE INDEX idx_consumptions_user_active ON app.consumptions(user_id, created_at DESC) WHERE deleted_at IS NULL;
+
+-- Optional: extend for other user_id tables
+-- ALTER TABLE app.savings_cards ADD COLUMN deleted_at TIMESTAMPTZ;
+
+-- <<< END V4_fk_indexes_soft_delete.sql
+
+-- >>> BEGIN V5_audit_logs.sql
+CREATE TABLE app.audit_logs (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  event_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+  actor_id BIGINT,
+  actor_type TEXT,
+  entity_type TEXT NOT NULL,
+  entity_id BIGINT NOT NULL,
+  action TEXT NOT NULL,
+  changes JSONB,
+  context JSONB
+);
+CREATE INDEX idx_audit_entity_time ON app.audit_logs(entity_type, entity_id, event_time DESC);
+
+-- <<< END V5_audit_logs.sql
+
+-- >>> BEGIN V6__security_and_indexes.sql
+-- Security and performance enhancements
+SET search_path TO app, public;
+
+-- 1. Phone column no longer stores plaintext, drop unique constraint to allow masked duplicates
+ALTER TABLE app.users DROP CONSTRAINT IF EXISTS users_phone_key;
+COMMENT ON COLUMN app.users.phone IS 'Masked phone representation (no plaintext persisted).';
+
+-- 2. Ensure foreign key columns are indexed (idempotent)
+CREATE INDEX IF NOT EXISTS idx_appointments_user_active
+  ON app.appointments(user_id)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_appointments_status_active
+  ON app.appointments(status)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_shop_orders_user_active
+  ON app.shop_orders(user_id, created_at DESC)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order_active
+  ON app.order_items(order_id)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_order_items_product_active
+  ON app.order_items(product_id)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_consumptions_user_active
+  ON app.consumptions(user_id, created_at DESC)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_consumptions_ref_active
+  ON app.consumptions(ref_kind, ref_id)
+  WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_appointment_items_appt
+  ON app.appointment_items(appointment_id);
+
+CREATE INDEX IF NOT EXISTS idx_appointment_items_service
+  ON app.appointment_items(service_id);
+
+CREATE INDEX IF NOT EXISTS idx_product_images_product
+  ON app.product_images(product_id);
+
+CREATE INDEX IF NOT EXISTS idx_service_images_service
+  ON app.service_images(service_id);
+
+-- 3. Audit log lookup accelerator
+CREATE INDEX IF NOT EXISTS idx_audit_actor_time
+  ON app.audit_logs(actor_type, actor_id, event_time DESC);
+
+-- <<< END V6__security_and_indexes.sql
+
+-- >>> BEGIN V7__refund_and_payment_updates.sql
+-- Extend consume_type enum and add payment reference columns
+ALTER TYPE consume_type ADD VALUE IF NOT EXISTS 'REFUND';
+
+ALTER TABLE app.shop_orders
+    ADD COLUMN IF NOT EXISTS payment_ref VARCHAR(120);
+
+ALTER TABLE app.appointments
+    ADD COLUMN IF NOT EXISTS payment_ref VARCHAR(120);
+
+-- <<< END V7__refund_and_payment_updates.sql
+
+-- ============================================================
+-- End of concatenated migrations
+-- ============================================================
+-- Verify:
+--   SELECT nspname FROM pg_namespace WHERE nspname = 'app';
+--   -- \dn+ app
+--   -- \dt app.*
+-- ============================================================

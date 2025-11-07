@@ -58,9 +58,11 @@ public interface ServiceItemRepository extends JpaRepository<ServiceItem, Long> 
      * 搜索服务（分类或描述）
      */
     @Query("""
-        SELECT s FROM ServiceItem s 
-        WHERE (LOWER(s.category) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-           OR LOWER(s.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        SELECT s FROM ServiceItem s
+        WHERE (
+                LOWER(s.category) LIKE LOWER(CONCAT('%', :keyword, '%'))
+             OR LOWER(CAST(s.description AS string)) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
           AND s.status = 'ON'
     """)
     List<ServiceItem> searchServices(@Param("keyword") String keyword);
@@ -100,15 +102,15 @@ public interface ServiceItemRepository extends JpaRepository<ServiceItem, Long> 
     /**
      * 查询热门服务（基于预约次数）
      */
-    @Query("""
-        SELECT s, COUNT(ai.id) as bookingCount
-        FROM ServiceItem s
-        LEFT JOIN AppointmentItem ai ON s.id = ai.serviceId
-        WHERE s.status = 'ON'
-        GROUP BY s.id
-        ORDER BY bookingCount DESC
-        LIMIT :limit
-    """)
+    @Query(value = """
+        SELECT s.*, COUNT(ai.id) AS booking_count
+          FROM app.services s
+          LEFT JOIN app.appointment_items ai ON ai.service_id = s.id
+         WHERE s.status = 'ON'
+         GROUP BY s.id
+         ORDER BY booking_count DESC
+         LIMIT :limit
+        """, nativeQuery = true)
     List<Object[]> findPopularServices(@Param("limit") int limit);
     
     /**

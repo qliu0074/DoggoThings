@@ -1,8 +1,11 @@
 package app.nail.domain.entity;
 
+import app.nail.common.model.SoftDeletable;
 import app.nail.domain.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.OffsetDateTime;
 
@@ -10,7 +13,8 @@ import java.time.OffsetDateTime;
  * 商城订单明细实体
  * 对应表：app.order_items
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -20,7 +24,9 @@ import java.time.OffsetDateTime;
         @Index(name = "idx_items_product", columnList = "product_id"),
         @Index(name = "idx_items_status", columnList = "status")
 })
-public class OrderItem {
+@SQLDelete(sql = "UPDATE app.order_items SET deleted_at = now() WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
+public class OrderItem extends SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,7 +59,7 @@ public class OrderItem {
     @Column(nullable = false, columnDefinition = "shop_status")
     private ShopStatus status;
 
-    /** 创建时间（数据库 now()） */
+    /** 创建时间（数据库 now() 自动赋值） */
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

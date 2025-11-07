@@ -4,14 +4,16 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.OffsetDateTime;
 
 /**
  * 用户实体
  * 对应表：app.users
- * 说明：保存用户基础信息及微信标识，包含手机号哈希与密文字段
+ * 说明：保存用户基础信息及微信标识，手机号仅以脱敏、哈希、密文形式存储
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -33,19 +35,19 @@ public class User {
     private String nickname;
 
     /**
-     * 明文手机号（可空，唯一）。建议仅在必要场景使用
+     * 脱敏手机号（可空）。仅保留前后若干位用于展示。
      */
-    @Column(length = 30, unique = true)
+    @Column(name = "phone", length = 30)
     private String phone;
 
     /**
-     * 手机号哈希（SHA-256 等），与明文解耦，用于检索与去重
+     * 手机号哈希（带盐），与明文解耦，用于检索与去重
      */
     @Column(name = "phone_hash", length = 64, unique = true)
     private String phoneHash;
 
     /**
-     * 手机号密文（对称加密存储）
+     * 手机号密文（对称加密存储，包含随机向量）
      */
     @Lob
     @Column(name = "phone_enc")

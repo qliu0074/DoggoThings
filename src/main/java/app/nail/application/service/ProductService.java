@@ -1,13 +1,17 @@
 package app.nail.application.service;
 
+import app.nail.common.exception.ApiException;
 import app.nail.domain.entity.Product;
 import app.nail.domain.entity.ProductImage;
 import app.nail.domain.enums.ProductStatus;
 import app.nail.domain.repository.ProductImageRepository;
 import app.nail.domain.repository.ProductRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,7 +30,8 @@ public class ProductService {
     private final ProductImageRepository imageRepo;
 
     /** 新建商品（只演示关键字段） */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", allEntries = true)
     public Long createProduct(String name, String category, int priceCents) {
         Product p = Product.builder()
                 .name(name)
@@ -40,9 +45,10 @@ public class ProductService {
     }
 
     /** 修改商品基础信息 */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#id")
     public void updateProduct(Long id, String name, String category, Integer priceCents, ProductStatus status) {
-        Product p = productRepo.findById(id).orElseThrow(() -> new RuntimeException("商品不存在"));
+        Product p = productRepo.findById(id).orElseThrow(() -> ApiException.resourceNotFound("商品不存在"));
         if (name != null) p.setName(name);
         if (category != null) p.setCategory(category);
         if (priceCents != null) p.setPriceCents(priceCents);
@@ -51,32 +57,53 @@ public class ProductService {
     }
 
     /** 冻结库存（下单未确认时调用，delta > 0） */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#productId")
     public void freezeStock(long productId, int delta) {
+        lockProduct(productId);
         int ok = productRepo.adjustPendingStock(productId, delta);
-        if (ok == 0) throw new RuntimeException("冻结库存失败");
+        if (ok == 0) throw ApiException.businessViolation("冻结库存失败");
     }
 
     /** 释放库存（取消时 delta < 0），或减少冻结 */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#productId")
     public void adjustFrozen(long productId, int delta) {
+        lockProduct(productId);
         int ok = productRepo.adjustPendingStock(productId, delta);
-        if (ok == 0) throw new RuntimeException("调整冻结库存失败");
+        if (ok == 0) throw ApiException.businessViolation("调整冻结库存失败");
     }
 
     /** 确认扣减实际库存（发货或确认时） */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#productId")
     public void confirmDeduct(long productId, int qty) {
+        lockProduct(productId);
         int ok = productRepo.tryDeductActualStock(productId, qty);
-        if (ok == 0) throw new RuntimeException("实际库存不足");
+        if (ok == 0) throw ApiException.businessViolation("实际库存不足");
+    }
+
+    /** English: Restore actual stock after refunds. */
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#productId")
+    public void restoreStock(long productId, int qty) {
+        if (qty <= 0) {
+            throw ApiException.businessViolation("返还库存数量必须为正");
+        }
+        lockProduct(productId);
+        int ok = productRepo.increaseActualStock(productId, qty);
+        if (ok == 0) {
+            throw ApiException.businessViolation("返还库存失败");
+        }
     }
 
     /** 添加图片并可选设为封面 */
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @CacheEvict(cacheNames = "product-detail", key = "#productId")
     public Long addImage(long productId, String url, boolean cover, short sortOrder) {
-        Product p = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("商品不存在"));
+        Product p = lockProduct(productId);
         if (cover && imageRepo.existsByProductIdAndCoverTrue(productId)) {
-            throw new RuntimeException("封面已存在");
+            throw ApiException.conflict("封面已存在");
         }
         ProductImage img = ProductImage.builder()
                 .product(p)
@@ -90,5 +117,18 @@ public class ProductService {
     /** 获取商品图片（排序） */
     public List<ProductImage> listImages(long productId) {
         return imageRepo.findByProductIdOrderBySortOrderAsc(productId);
+    }
+
+    /**
+     * English: Cached product lookup for high-frequency reads.
+     */
+    @Cacheable(cacheNames = "product-detail", key = "#id")
+    public Product getProduct(long id) {
+        return productRepo.findById(id).orElseThrow(() -> ApiException.resourceNotFound("商品不存在"));
+    }
+
+    private Product lockProduct(long productId) {
+        return productRepo.lockById(productId)
+                .orElseThrow(() -> ApiException.resourceNotFound("商品不存在"));
     }
 }

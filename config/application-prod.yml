@@ -1,6 +1,9 @@
 spring:
   jpa:
     show-sql: false
+    properties:
+      hibernate:
+        default_schema: app
 logging:
   level:
     root: info

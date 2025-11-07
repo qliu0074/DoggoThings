@@ -4,6 +4,7 @@ import app.nail.application.service.ProductService;
 import app.nail.domain.entity.Product;
 import app.nail.domain.repository.ProductRepository;
 import app.nail.interfaces.admin.dto.AdminProductDtos.*;
+import app.nail.interfaces.common.PageRequestParams;
 import app.nail.interfaces.common.dto.PageResp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** English: Admin product management. */
 @RestController
-@RequestMapping("/api/admin/products")
+@RequestMapping("/api/v1/admin/products")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminProductController {
@@ -31,9 +32,10 @@ public class AdminProductController {
     }
 
     @GetMapping
-    public PageResp<ProductDetailResp> page(@RequestParam(defaultValue = "0") int page,
-                                            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("updatedAt").descending());
+    public PageResp<ProductDetailResp> page(@RequestParam(required = false) Integer page,
+                                            @RequestParam(required = false) Integer size) {
+        PageRequestParams params = PageRequestParams.of(page, size);
+        Pageable pageable = PageRequest.of(params.page(), params.size(), Sort.by("updatedAt").descending());
         Page<Product> p = productRepo.findAll(pageable);
         return new PageResp<>(
                 p.map(this::toResp).getContent(),

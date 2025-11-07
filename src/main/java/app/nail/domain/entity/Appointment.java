@@ -1,11 +1,14 @@
 package app.nail.domain.entity;
 
+import app.nail.common.model.SoftDeletable;
 import app.nail.domain.enums.ApptStatus;
 import app.nail.domain.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -15,7 +18,8 @@ import java.util.List;
  * 预约单实体
  * 对应表：app.appointments
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,7 +27,9 @@ import java.util.List;
 @Table(name = "appointments", schema = "app", indexes = {
         @Index(name = "ux_appt_user_slot", columnList = "user_id, appointment_at", unique = true)
 })
-public class Appointment {
+@SQLDelete(sql = "UPDATE app.appointments SET deleted_at = now() WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
+public class Appointment extends SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,6 +61,10 @@ public class Appointment {
     /** 使用余额（分） */
     @Column(name = "balance_cents_used", nullable = false)
     private Integer balanceCentsUsed;
+
+    /** English: External payment reference for online payments. */
+    @Column(name = "payment_ref", length = 120)
+    private String paymentRef;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

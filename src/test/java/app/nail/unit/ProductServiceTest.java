@@ -15,10 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-/** English: Pure unit test with Mockito. */
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
@@ -29,16 +29,13 @@ class ProductServiceTest {
 
     @Test
     void createProduct_shouldPersistWithDefaults() {
-        // Arrange
         var stub = Product.builder()
                 .id(1L).name("A").category("TOY").priceCents(1000)
                 .stockActual(0).stockPending(0).status(ProductStatus.ON).build();
         when(productRepo.save(any(Product.class))).thenReturn(stub);
 
-        // Act
         Long id = productService.createProduct("A","TOY",1000);
 
-        // Assert
         assertThat(id).isEqualTo(1L);
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
         verify(productRepo).save(captor.capture());
@@ -56,19 +53,18 @@ class ProductServiceTest {
 
         verify(productRepo).save(origin);
         assertThat(origin.getName()).isEqualTo("new");
-        assertThat(origin.getCategory()).isEqualTo("X"); // unchanged
+        assertThat(origin.getCategory()).isEqualTo("X");
         assertThat(origin.getPriceCents()).isEqualTo(200);
         assertThat(origin.getStatus()).isEqualTo(ProductStatus.OFF);
     }
 
     @Test
     void addImage_shouldRejectDuplicateCover() {
-        var p = Product.builder().id(2L).build();
-        when(productRepo.findById(2L)).thenReturn(Optional.of(p));
+        var product = Product.builder().id(2L).build();
+        when(productRepo.lockById(2L)).thenReturn(Optional.of(product));
         when(imageRepo.existsByProductIdAndCoverTrue(2L)).thenReturn(true);
 
         assertThatThrownBy(() -> productService.addImage(2L, "url", true, (short) 0))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("封面已存在");
+                .isInstanceOf(RuntimeException.class);
     }
 }

@@ -2,20 +2,26 @@ package app.nail.common.util;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Base64;
 
-/** English: Hash helpers for privacy-preserving matching. */
-public final class HashUtils {
-    private HashUtils() {}
-    /** English: Hex SHA-256 for phone_hash. */
-    public static String sha256Hex(String s) {
+/** English: Hashing utility with salt. */
+public class HashUtils {
+
+    public static String saltedSHA256(String input, String salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] d = md.digest(s.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(d.length * 2);
-            for (byte b : d) sb.append(String.format("%02x", b));
-            return sb.toString();
+            md.update(salt.getBytes(StandardCharsets.UTF_8));
+            byte[] hashed = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashed);
         } catch (Exception e) {
-            throw new IllegalStateException(e);
+            throw new RuntimeException("Hashing failed", e);
         }
+    }
+
+    public static String generateSalt(int len) {
+        byte[] salt = new byte[len];
+        new SecureRandom().nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
     }
 }

@@ -1,7 +1,9 @@
 package app.nail.unit;
 
 import app.nail.application.service.AppointmentService;
+import app.nail.application.service.AuditService;
 import app.nail.application.service.BalanceService;
+import app.nail.application.service.NotificationService;
 import app.nail.domain.entity.Appointment;
 import app.nail.domain.entity.ServiceItem;
 import app.nail.domain.entity.User;
@@ -11,6 +13,10 @@ import app.nail.domain.repository.AppointmentItemRepository;
 import app.nail.domain.repository.AppointmentRepository;
 import app.nail.domain.repository.ServiceItemRepository;
 import app.nail.domain.repository.UserRepository;
+import app.nail.infra.payment.PaymentGatewayClient;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /** English: Unit test focusing on price sum and balance freezing. */
@@ -33,8 +40,18 @@ class AppointmentServiceTest {
     @Mock ServiceItemRepository serviceRepo;
     @Mock UserRepository userRepo;
     @Mock BalanceService balanceService;
+    @Mock AuditService auditService;
+    @Mock NotificationService notificationService;
+    @Mock PaymentGatewayClient paymentGatewayClient;
+    @Mock MeterRegistry meterRegistry;
+    @Mock Counter counter;
 
     @InjectMocks AppointmentService apptService;
+
+    @BeforeEach
+    void initCounters() {
+        lenient().when(meterRegistry.counter(anyString())).thenReturn(counter);
+    }
 
     @Test
     void book_shouldSumItems_andFreezeBalance() {

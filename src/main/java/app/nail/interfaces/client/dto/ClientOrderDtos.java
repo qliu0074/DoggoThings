@@ -1,6 +1,11 @@
 package app.nail.interfaces.client.dto;
 
 import app.nail.domain.enums.ShopStatus;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -8,15 +13,17 @@ import java.util.List;
 public class ClientOrderDtos {
 
     /** English: Order item request from client. */
-    public record OrderItemReq(Long productId, Integer qty) {}
+    public record OrderItemReq(
+            @NotNull Long productId,
+            @NotNull @Positive Integer qty
+    ) {}
 
     /** English: Create order request. */
     public record CreateOrderReq(
-            Long userId,
-            List<OrderItemReq> items,
+            @Valid @NotEmpty List<OrderItemReq> items,
             boolean freezeBalance,
-            String address,
-            String phone
+            @NotBlank String address,
+            @NotBlank String phone
     ) {}
 
     /** English: Order item view for client. */

@@ -1,0 +1,1 @@
+-- Placeholder init script for Testcontainers JDBC driver.

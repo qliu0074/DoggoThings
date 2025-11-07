@@ -4,6 +4,7 @@ import app.nail.domain.entity.ServiceItem;
 import app.nail.domain.enums.ProductStatus;
 import app.nail.domain.repository.ServiceItemRepository;
 import app.nail.interfaces.client.dto.ClientServiceDtos.ServiceResp;
+import app.nail.interfaces.common.PageRequestParams;
 import app.nail.interfaces.common.dto.PageResp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** English: Client service browsing controller. */
 @RestController
-@RequestMapping("/api/client/services")
+@RequestMapping("/api/v1/client/services")
 @RequiredArgsConstructor
 public class ClientServiceController {
 
@@ -19,10 +20,11 @@ public class ClientServiceController {
 
     /** English: Paged service list for clients, only ON. */
     @GetMapping
-    public PageResp<ServiceResp> page(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "10") int size,
+    public PageResp<ServiceResp> page(@RequestParam(required = false) Integer page,
+                                      @RequestParam(required = false) Integer size,
                                       @RequestParam(required = false) String category) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("updatedAt").descending());
+        PageRequestParams params = PageRequestParams.of(page, size);
+        Pageable pageable = PageRequest.of(params.page(), params.size(), Sort.by("updatedAt").descending());
         var p = (category != null && !category.isBlank())
                 ? serviceRepo.findByCategoryAndStatus(category, ProductStatus.ON, pageable)
                 : serviceRepo.findByStatus(ProductStatus.ON, pageable);

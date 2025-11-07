@@ -1,7 +1,11 @@
 package app.nail.domain.repository;
 
 import app.nail.domain.entity.SavingsPending;
-import org.springframework.data.jpa.repository.*;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
@@ -37,4 +41,8 @@ public interface SavingsPendingRepository extends JpaRepository<SavingsPending, 
            AND pending_cents + :delta >= 0
         """, nativeQuery = true)
     int adjust(@Param("userId") long userId, @Param("delta") int delta);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select sp from SavingsPending sp where sp.userId = :userId")
+    java.util.Optional<SavingsPending> lockByUserId(@Param("userId") long userId);
 }

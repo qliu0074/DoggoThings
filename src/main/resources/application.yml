@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:}
   application:
@@ -17,9 +19,9 @@ spring:
       write-dates-as-timestamps: false
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/app}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -46,6 +48,13 @@ management:
     export:
       prometheus:
         enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
   endpoints:
     web:
       exposure:
@@ -54,12 +63,17 @@ management:
     health:
       probes:
         enabled: true
+      show-details: always
 
 app:
   security:
+    require-https: ${APP_SECURITY_REQUIRE_HTTPS:true}
     jwt:
       secret: ${APP_SECURITY_JWT_SECRET:change_this_in_env}
       ttl-seconds: ${APP_SECURITY_JWT_TTL:36000}
+    phone:
+      hash-salt: ${APP_SECURITY_PHONE_HASH_SALT:change_me_to_random_salt}
+      encryption-key: ${APP_SECURITY_PHONE_ENC_KEY:MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=}
     in-memory:
       user:
         username: ${APP_SECURITY_USER_USERNAME:user}
@@ -72,3 +86,5 @@ logging:
   level:
     root: INFO
     app.nail: INFO
+  pattern:
+    level: "%5p [corr=%X{correlationId:-} trace=%X{traceId:-} span=%X{spanId:-}]"

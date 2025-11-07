@@ -10,6 +10,12 @@ public class AdminOrderDtos {
     /** English: Ship request. */
     public record ShipReq(String trackingNo) {}
 
+    /** English: Refund request payload. */
+    public record RefundReq(
+            @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Integer amountCents,
+            String reason
+    ) {}
+
     /** English: Admin order item view. */
     public record ItemResp(
             Long id,

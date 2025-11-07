@@ -1,7 +1,11 @@
 package app.nail.domain.repository;
 
 import app.nail.domain.entity.SavingsCard;
-import org.springframework.data.jpa.repository.*;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
@@ -36,4 +40,8 @@ public interface SavingsCardRepository extends JpaRepository<SavingsCard, Long> 
            AND balance_cents >= :delta
         """, nativeQuery = true)
     int trySpend(@Param("userId") long userId, @Param("delta") int delta);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select sc from SavingsCard sc where sc.userId = :userId")
+    java.util.Optional<SavingsCard> lockByUserId(@Param("userId") long userId);
 }

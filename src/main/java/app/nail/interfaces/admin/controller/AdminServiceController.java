@@ -4,6 +4,7 @@ import app.nail.application.service.ServiceItemService;
 import app.nail.domain.entity.ServiceItem;
 import app.nail.domain.repository.ServiceItemRepository;
 import app.nail.interfaces.admin.dto.AdminServiceDtos.*;
+import app.nail.interfaces.common.PageRequestParams;
 import app.nail.interfaces.common.dto.PageResp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** English: Admin service management. */
 @RestController
-@RequestMapping("/api/admin/services")
+@RequestMapping("/api/v1/admin/services")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminServiceController {
@@ -31,9 +32,10 @@ public class AdminServiceController {
     }
 
     @GetMapping
-    public PageResp<ServiceItem> page(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("updatedAt").descending());
+    public PageResp<ServiceItem> page(@RequestParam(required = false) Integer page,
+                                      @RequestParam(required = false) Integer size) {
+        PageRequestParams params = PageRequestParams.of(page, size);
+        Pageable pageable = PageRequest.of(params.page(), params.size(), Sort.by("updatedAt").descending());
         var p = serviceRepo.findAll(pageable);
         return new PageResp<>(p.getContent(), p.getTotalElements(), p.getTotalPages(), p.getNumber(), p.getSize());
     }

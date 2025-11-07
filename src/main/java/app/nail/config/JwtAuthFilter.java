@@ -1,8 +1,9 @@
 package app.nail.config;
 
+import app.nail.common.security.JwtKeyProvider;
+import app.nail.common.security.PrincipalUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +16,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,15 +25,10 @@ import java.util.stream.Collectors;
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final String secret;
+    private final JwtKeyProvider jwtKeyProvider;
 
-    public JwtAuthFilter(String secret) {
-        this.secret = secret;
-    }
-
-    /** English: HS256 key. Secret length must be >= 32 bytes. */
-    private Key key() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtAuthFilter(JwtKeyProvider jwtKeyProvider) {
+        this.jwtKeyProvider = jwtKeyProvider;
     }
 
     @Override
@@ -48,12 +42,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             try {
                 Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(key())
+                        .setSigningKey(jwtKeyProvider.getKey())
                         .build()
                         .parseClaimsJws(token)
                         .getBody();
 
                 String username = claims.getSubject();
+                Object userIdRaw = claims.get("userId");
+                Long userId = null;
+                if (userIdRaw instanceof Number number) {
+                    userId = number.longValue();
+                }
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);
 
@@ -63,7 +62,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                 .map(SimpleGrantedAuthority::new)
                                 .collect(Collectors.toList());
 
-                var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                String actorRole = (roles == null || roles.isEmpty()) ? null : roles.get(0);
+                PrincipalUser principal = new PrincipalUser(userId, actorRole);
+                var auth = new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
                 SecurityContextHolder.clearContext(); // English: invalid token -> anonymous

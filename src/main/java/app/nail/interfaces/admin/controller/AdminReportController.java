@@ -14,7 +14,7 @@ import java.util.List;
 
 /** English: Simple reporting endpoints. */
 @RestController
-@RequestMapping("/api/admin/reports")
+@RequestMapping("/api/v1/admin/reports")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminReportController {

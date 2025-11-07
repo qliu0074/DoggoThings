@@ -1,17 +1,21 @@
 package app.nail.domain.entity;
 
+import app.nail.common.model.SoftDeletable;
 import app.nail.domain.enums.ConsumeType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.OffsetDateTime;
 
 /**
  * 余额变动纪录实体
  * 对应表：app.consumptions
- * 说明：记录充值与消费，并可关联来源（订单/预约）
+ * 说明：记录充值与消费，并可关联来源（订单/预约等）
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,7 +23,9 @@ import java.time.OffsetDateTime;
 @Table(name = "consumptions", schema = "app", indexes = {
         @Index(name = "idx_consumptions_user_time", columnList = "user_id, created_at")
 })
-public class Consumption {
+@SQLDelete(sql = "UPDATE app.consumptions SET deleted_at = now() WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
+public class Consumption extends SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,7 +53,7 @@ public class Consumption {
     @Column(name = "ref_id")
     private Long refId;
 
-    /** 创建时间（数据库 now()） */
+    /** 创建时间（数据库 now() 自动赋值） */
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 }
