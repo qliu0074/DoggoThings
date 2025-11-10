@@ -4,8 +4,10 @@ import app.nail.common.model.SoftDeletable;
 import app.nail.domain.enums.ConsumeType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 
@@ -38,6 +40,7 @@ public class Consumption extends SoftDeletable {
 
     /** 类型：充值或消费 */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "kind", nullable = false, columnDefinition = "consume_type")
     private ConsumeType kind;
 
@@ -46,8 +49,7 @@ public class Consumption extends SoftDeletable {
     private Integer amountCents;
 
     /** 参考来源类型与 ID（可空） */
-    @Lob
-    @Column(name = "ref_kind")
+    @Column(name = "ref_kind", columnDefinition = "text")
     private String refKind;
 
     @Column(name = "ref_id")

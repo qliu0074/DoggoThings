@@ -48,7 +48,6 @@ class AppointmentFlowIT extends IntegrationTestSupport {
     void should_book_finish_and_refund_online_appointment() {
         User user = userRepository.save(User.builder()
                 .nickname("it-appointment-user")
-                .phone("18800001111")
                 .build());
         ServiceItem serviceItem = serviceItemRepository.save(ServiceItem.builder()
                 .category("spa")

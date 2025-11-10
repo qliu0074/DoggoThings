@@ -51,7 +51,6 @@ class OrderFlowIT extends IntegrationTestSupport {
     void should_complete_online_order_lifecycle_and_emit_integrations() {
         User user = userRepository.save(User.builder()
                 .nickname("it-order-user")
-                .phone("18800000000")
                 .build());
         Product product = productRepository.save(Product.builder()
                 .name("Flow Product")

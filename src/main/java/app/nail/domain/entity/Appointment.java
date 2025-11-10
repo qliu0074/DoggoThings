@@ -6,9 +6,11 @@ import app.nail.domain.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -24,9 +26,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "appointments", schema = "app", indexes = {
-        @Index(name = "ux_appt_user_slot", columnList = "user_id, appointment_at", unique = true)
-})
+@Table(name = "appointments", schema = "app")
 @SQLDelete(sql = "UPDATE app.appointments SET deleted_at = now() WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")
 public class Appointment extends SoftDeletable {
@@ -44,8 +44,17 @@ public class Appointment extends SoftDeletable {
     @Column(name = "appointment_at", nullable = false)
     private OffsetDateTime appointmentAt;
 
+    /** 预计耗时（分钟） */
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
+
+    /** 预计结束时间 */
+    @Column(name = "end_at", nullable = false)
+    private OffsetDateTime endAt;
+
     /** 预约状态 */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false, columnDefinition = "appt_status")
     private ApptStatus status;
 
@@ -55,6 +64,7 @@ public class Appointment extends SoftDeletable {
 
     /** 支付方式（可空） */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "pay_method", columnDefinition = "payment_method")
     private PaymentMethod payMethod;
 

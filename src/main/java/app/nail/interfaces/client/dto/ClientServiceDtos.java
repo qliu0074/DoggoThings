@@ -11,6 +11,7 @@ public class ClientServiceDtos {
             Long id,
             String category,
             Integer priceCents,
+            Integer estimatedMinutes,
             String description,
             ProductStatus status,
             OffsetDateTime updatedAt

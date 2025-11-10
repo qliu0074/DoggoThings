@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,21 +44,33 @@ public class AppointmentService {
 
     /** DTO placeholder matching service-layer contract. */
     public record ServiceItemDTO(Long serviceId, Integer qty) {}
+    private record ResolvedServiceItem(ServiceItem service, int qty) {}
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Long book(Long userId, OffsetDateTime time, List<ServiceItemDTO> items, boolean freezeBalance) {
         userRepo.findById(userId).orElseThrow(() -> ApiException.resourceNotFound("用户不存在"));
-        if (apptRepo.existsByUserIdAndAppointmentAt(userId, time)) {
-            throw ApiException.conflict("该时段已有预约");
-        }
         if (items == null || items.isEmpty()) {
             throw ApiException.businessViolation("预约项目不能为空");
         }
-
+        Map<Long, ServiceItem> cache = new HashMap<>();
+        List<ResolvedServiceItem> resolvedItems = new ArrayList<>();
         int total = 0;
+        int durationMinutes = 0;
         for (ServiceItemDTO dto : items) {
-            ServiceItem s = serviceRepo.findById(dto.serviceId()).orElseThrow(() -> ApiException.resourceNotFound("服务不存在"));
-            total += s.getPriceCents() * dto.qty();
+            ServiceItem service = cache.computeIfAbsent(dto.serviceId(),
+                    id -> serviceRepo.findById(id).orElseThrow(() -> ApiException.resourceNotFound("服务不存在")));
+            int qty = dto.qty();
+            total += service.getPriceCents() * qty;
+            int minutes = service.getEstimatedMinutes() == null ? 60 : service.getEstimatedMinutes();
+            durationMinutes += minutes * qty;
+            resolvedItems.add(new ResolvedServiceItem(service, qty));
+        }
+        if (durationMinutes <= 0) {
+            throw ApiException.businessViolation("预约耗时必须为正");
+        }
+        OffsetDateTime endAt = time.plusMinutes(durationMinutes);
+        if (apptRepo.existsOverlapping(userId, time, endAt)) {
+            throw ApiException.conflict("该时间段已有预约");
         }
 
         if (freezeBalance) {
@@ -67,6 +81,8 @@ public class AppointmentService {
         Appointment appt = Appointment.builder()
                 .user(User.builder().id(userId).build())
                 .appointmentAt(time)
+                .durationMinutes(durationMinutes)
+                .endAt(endAt)
                 .status(ApptStatus.UNCONFIRMED)
                 .totalCents(total)
                 .payMethod(payMethod)
@@ -74,12 +90,12 @@ public class AppointmentService {
                 .build();
         appt = apptRepo.save(appt);
 
-        for (ServiceItemDTO dto : items) {
-            ServiceItem s = serviceRepo.findById(dto.serviceId()).orElseThrow(() -> ApiException.resourceNotFound("服务不存在"));
+        for (ResolvedServiceItem resolved : resolvedItems) {
+            ServiceItem s = resolved.service();
             AppointmentItem ai = AppointmentItem.builder()
                     .appointment(appt)
                     .service(s)
-                    .qty(dto.qty())
+                    .qty(resolved.qty())
                     .unitCents(s.getPriceCents())
                     .build();
             itemRepo.save(ai);

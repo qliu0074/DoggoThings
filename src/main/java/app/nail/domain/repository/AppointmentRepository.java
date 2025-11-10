@@ -5,6 +5,7 @@ import app.nail.domain.enums.ApptStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.OffsetDateTime;
 
@@ -21,6 +22,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     /** 按状态分页查询（后台看板） */
     Page<Appointment> findByStatus(ApptStatus status, Pageable pageable);
 
-    /** 是否存在同一用户同一时段的预约（用于校验唯一档期） */
-    boolean existsByUserIdAndAppointmentAt(Long userId, OffsetDateTime slot);
+    /** 是否存在时间重叠的预约（排除已取消/已退款） */
+    @Query("""
+            SELECT (COUNT(a) > 0) FROM Appointment a
+            WHERE a.user.id = :userId
+              AND a.status NOT IN (app.nail.domain.enums.ApptStatus.CANCELLED, app.nail.domain.enums.ApptStatus.REFUNDED)
+              AND a.appointmentAt < :endAt
+              AND a.endAt > :startAt
+            """)
+    boolean existsOverlapping(Long userId, OffsetDateTime startAt, OffsetDateTime endAt);
 }

@@ -4,8 +4,10 @@ import app.nail.common.model.SoftDeletable;
 import app.nail.domain.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 
@@ -56,6 +58,7 @@ public class OrderItem extends SoftDeletable {
 
     /** 明细状态（与头同枚举） */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false, columnDefinition = "shop_status")
     private ShopStatus status;
 

@@ -14,7 +14,7 @@ import java.util.Base64;
 import java.util.Optional;
 
 /**
- * English: Handles hashing, masking and encrypting phone numbers.
+ * English: Handles hashing and encrypting phone numbers.
  */
 @Component
 @RequiredArgsConstructor
@@ -25,12 +25,11 @@ public class PhoneProtector {
     private final SecureRandom secureRandom = new SecureRandom();
 
     /**
-     * English: Apply protection to the given user entity (mask + hash + encrypt).
+     * English: Apply protection to the given user entity (hash + encrypt only).
      * Passing blank input clears the stored phone data.
      */
     public void apply(User user, String phonePlaintext) {
         if (!StringUtils.hasText(phonePlaintext)) {
-            user.setPhone(null);
             user.setPhoneHash(null);
             user.setPhoneEnc(null);
             return;
@@ -38,7 +37,6 @@ public class PhoneProtector {
         String normalized = normalize(phonePlaintext);
         String hash = hashNormalized(normalized);
         byte[] encrypted = encrypt(normalized);
-        user.setPhone(mask(normalized));
         user.setPhoneHash(hash);
         user.setPhoneEnc(encrypted);
     }
@@ -69,11 +67,6 @@ public class PhoneProtector {
         }
     }
 
-    /** English: Best-effort detection whether the stored value is already masked. */
-    public boolean isMasked(String value) {
-        return StringUtils.hasText(value) && value.contains("*");
-    }
-
     private String normalize(String raw) {
         String trimmed = raw.trim();
         String digitsOnly = trimmed.replaceAll("[^0-9]", "");
@@ -100,16 +93,5 @@ public class PhoneProtector {
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to encrypt phone number", ex);
         }
-    }
-
-    private String mask(String normalized) {
-        int len = normalized.length();
-        if (len <= 3) {
-            return "*".repeat(len);
-        }
-        if (len <= 7) {
-            return normalized.substring(0, 2) + "***" + normalized.substring(len - 2);
-        }
-        return normalized.substring(0, 3) + "****" + normalized.substring(len - 4);
     }
 }

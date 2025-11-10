@@ -68,7 +68,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        cfg.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://localhost:*",
+                "null" // file:// origins are represented as "null" in CORS
+        ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         cfg.setExposedHeaders(List.of("Content-Disposition"));
@@ -90,7 +94,7 @@ public class SecurityConfig {
                                            JwtAuthFilter jwtAuthFilter,
                                            ApiLoggingFilter apiLoggingFilter,
                                            CorrelationIdFilter correlationIdFilter,
-                                           @Value("${app.security.require-https:true}") boolean requireHttps) throws Exception {
+                                           @Value("${app.security.require-https:false}") boolean requireHttps) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())

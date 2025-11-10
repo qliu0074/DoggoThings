@@ -1,0 +1,49 @@
+{
+  "properties": [
+    {
+      "name": "app.security.require-https",
+      "type": "java.lang.Boolean",
+      "description": "Enforce HTTPS for all incoming requests."
+    },
+    {
+      "name": "app.security.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Symmetric signing secret for issuing JWT tokens."
+    },
+    {
+      "name": "app.security.jwt.ttl-seconds",
+      "type": "java.lang.Long",
+      "description": "JWT validity period expressed in seconds."
+    },
+    {
+      "name": "app.security.in-memory.user.username",
+      "type": "java.lang.String",
+      "description": "Username for the in-memory standard user."
+    },
+    {
+      "name": "app.security.in-memory.user.password",
+      "type": "java.lang.String",
+      "description": "Password for the in-memory standard user."
+    },
+    {
+      "name": "app.security.in-memory.admin.username",
+      "type": "java.lang.String",
+      "description": "Username for the in-memory admin user."
+    },
+    {
+      "name": "app.security.in-memory.admin.password",
+      "type": "java.lang.String",
+      "description": "Password for the in-memory admin user."
+    },
+    {
+      "name": "app.security.phone.hash-salt",
+      "type": "java.lang.String",
+      "description": "Salt used for hashing phone numbers."
+    },
+    {
+      "name": "app.security.phone.encryption-key",
+      "type": "java.lang.String",
+      "description": "Base64 encoded AES key for phone encryption."
+    }
+  ]
+}

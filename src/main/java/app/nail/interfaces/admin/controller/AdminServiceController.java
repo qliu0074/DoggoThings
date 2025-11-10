@@ -23,12 +23,14 @@ public class AdminServiceController {
 
     @PostMapping
     public Long create(@RequestBody CreateServiceReq req) {
-        return serviceItemService.createService(req.category(), req.priceCents(), req.description());
+        return serviceItemService.createService(req.category(), req.priceCents(), req.description(),
+                req.estimatedMinutes());
     }
 
     @PutMapping("/{id}")
     public void update(@PathVariable Long id, @RequestBody UpdateServiceReq req) {
-        serviceItemService.updateService(id, req.category(), req.priceCents(), req.description(), req.status());
+        serviceItemService.updateService(id, req.category(), req.priceCents(), req.description(),
+                req.status(), req.estimatedMinutes());
     }
 
     @GetMapping

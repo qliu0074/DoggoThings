@@ -42,7 +42,7 @@ public class ClientServiceController {
     }
 
     private ServiceResp toResp(ServiceItem e) {
-        return new ServiceResp(e.getId(), e.getCategory(), e.getPriceCents(),
+        return new ServiceResp(e.getId(), e.getCategory(), e.getPriceCents(), e.getEstimatedMinutes(),
                 e.getDescription(), e.getStatus(), e.getUpdatedAt());
     }
 }

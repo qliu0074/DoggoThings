@@ -35,12 +35,6 @@ public class User {
     private String nickname;
 
     /**
-     * 脱敏手机号（可空）。仅保留前后若干位用于展示。
-     */
-    @Column(name = "phone", length = 30)
-    private String phone;
-
-    /**
      * 手机号哈希（带盐），与明文解耦，用于检索与去重
      */
     @Column(name = "phone_hash", length = 64, unique = true)

@@ -28,8 +28,7 @@ public class ServiceImage {
     private ServiceItem service;
 
     /** 图片 URL */
-    @Lob
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, columnDefinition = "text")
     private String imageUrl;
 
     /** 是否封面 */

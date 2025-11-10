@@ -26,13 +26,24 @@ spring:
     hikari:
       maximum-pool-size: 20
 
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      database: ${SPRING_REDIS_DATABASE:0}
+      timeout: ${SPRING_REDIS_TIMEOUT:5s}
+      lettuce:
+        shutdown-timeout: 1s
+
   jpa:
     hibernate:
       ddl-auto: none
     open-in-view: false
     show-sql: true
     properties:
-      hibernate.format_sql: true
+      "[hibernate.format_sql]": true
+      "[hibernate.type.preferred_enum_type]": postgres_enum
 
   flyway:
     enabled: true
@@ -43,10 +54,16 @@ spring:
     schemas: app
     default-schema: app
 
+  cache:
+    type: redis
+    redis:
+      key-prefix: ${SPRING_CACHE_REDIS_PREFIX:nail:}
+      time-to-live: ${SPRING_CACHE_REDIS_TTL:10m}
+
 management:
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   tracing:
     enabled: true
@@ -67,7 +84,7 @@ management:
 
 app:
   security:
-    require-https: ${APP_SECURITY_REQUIRE_HTTPS:true}
+    require-https: ${APP_SECURITY_REQUIRE_HTTPS:false}
     jwt:
       secret: ${APP_SECURITY_JWT_SECRET:change_this_in_env}
       ttl-seconds: ${APP_SECURITY_JWT_TTL:36000}

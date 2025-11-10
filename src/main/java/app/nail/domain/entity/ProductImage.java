@@ -28,8 +28,7 @@ public class ProductImage {
     private Product product;
 
     /** 图片 URL */
-    @Lob
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, columnDefinition = "text")
     private String imageUrl;
 
     /** 是否封面 */

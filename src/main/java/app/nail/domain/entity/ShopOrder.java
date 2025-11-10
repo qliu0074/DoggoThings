@@ -6,9 +6,11 @@ import app.nail.domain.enums.ShopStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.Where;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ public class ShopOrder extends SoftDeletable { // English: provides deletedAt fi
 
     /** English: Order status (Postgres enum shop_status) */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false, columnDefinition = "shop_status")
     private ShopStatus status;
 
@@ -60,6 +63,7 @@ public class ShopOrder extends SoftDeletable { // English: provides deletedAt fi
 
     /** English: Payment method (Postgres enum payment_method) */
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "pay_method", columnDefinition = "payment_method")
     private PaymentMethod payMethod;
 

@@ -56,9 +56,11 @@ class AppointmentServiceTest {
     @Test
     void book_shouldSumItems_andFreezeBalance() {
         when(userRepo.findById(1L)).thenReturn(Optional.of(User.builder().id(1L).build()));
-        when(serviceRepo.findById(10L)).thenReturn(Optional.of(ServiceItem.builder().id(10L).priceCents(100).build()));
-        when(serviceRepo.findById(11L)).thenReturn(Optional.of(ServiceItem.builder().id(11L).priceCents(200).build()));
-        when(apptRepo.existsByUserIdAndAppointmentAt(eq(1L), any())).thenReturn(false);
+        when(serviceRepo.findById(10L)).thenReturn(Optional.of(ServiceItem.builder()
+                .id(10L).priceCents(100).estimatedMinutes(30).build()));
+        when(serviceRepo.findById(11L)).thenReturn(Optional.of(ServiceItem.builder()
+                .id(11L).priceCents(200).estimatedMinutes(45).build()));
+        when(apptRepo.existsOverlapping(eq(1L), any(), any())).thenReturn(false);
 
         when(apptRepo.save(any(Appointment.class))).thenAnswer(i -> {
             Appointment a = i.getArgument(0);
@@ -77,6 +79,7 @@ class AppointmentServiceTest {
         verify(balanceService).freeze(1L, 400); // 100*2 + 200*1
         verify(apptRepo).save(argThat(a ->
                 a.getTotalCents() == 400 &&
+                a.getDurationMinutes() == (30 * 2 + 45) &&
                 a.getPayMethod() == PaymentMethod.BALANCE &&
                 a.getStatus() == ApptStatus.UNCONFIRMED));
     }

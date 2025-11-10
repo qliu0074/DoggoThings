@@ -25,10 +25,11 @@ public class ServiceItemService {
     private final ServiceImageRepository imageRepo;
 
     @Transactional
-    public Long createService(String category, int priceCents, String description) {
+    public Long createService(String category, int priceCents, String description, int estimatedMinutes) {
         ServiceItem s = ServiceItem.builder()
                 .category(category)
                 .priceCents(priceCents)
+                .estimatedMinutes(validateEstimatedMinutes(estimatedMinutes))
                 .description(description)
                 .status(ProductStatus.ON)
                 .build();
@@ -36,12 +37,14 @@ public class ServiceItemService {
     }
 
     @Transactional
-    public void updateService(Long id, String category, Integer priceCents, String description, ProductStatus status) {
+    public void updateService(Long id, String category, Integer priceCents, String description,
+                              ProductStatus status, Integer estimatedMinutes) {
         ServiceItem s = serviceRepo.findById(id).orElseThrow(() -> new RuntimeException("服务不存在"));
         if (category != null) s.setCategory(category);
         if (priceCents != null) s.setPriceCents(priceCents);
         if (description != null) s.setDescription(description);
         if (status != null) s.setStatus(status);
+        if (estimatedMinutes != null) s.setEstimatedMinutes(validateEstimatedMinutes(estimatedMinutes));
         serviceRepo.save(s);
     }
 
@@ -62,5 +65,12 @@ public class ServiceItemService {
 
     public List<ServiceImage> listImages(long serviceId) {
         return imageRepo.findByServiceIdOrderBySortOrderAsc(serviceId);
+    }
+
+    private int validateEstimatedMinutes(Integer minutes) {
+        if (minutes == null || minutes <= 0) {
+            throw new IllegalArgumentException("estimatedMinutes must be positive");
+        }
+        return minutes;
     }
 }
